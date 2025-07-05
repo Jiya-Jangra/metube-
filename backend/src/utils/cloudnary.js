@@ -22,3 +22,5 @@ const uploadonCloudinary = async (filePath)=>{
     }catch(err){
     fs.unlinkSync(filePath) ; 
 } } 
+
+export {uploadonCloudinary} ; 

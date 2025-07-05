@@ -73,7 +73,7 @@ userSchema.methods.isPasswordCorrect = async function (password){
 }
 
 userSchema.methids.generateAccessToken= function(){
-    JsonWebTokenError.sign(
+    jsonwebtoken.sign(
         {
             _Id :  this._id,
             userName: this.userName,
@@ -87,7 +87,7 @@ userSchema.methids.generateAccessToken= function(){
 }
 
 userSchema.methids.generaterefreshToken= function(){
-    JsonWebTokenError.sign(
+    jsonwebtoken.sign(
         {
             _Id :  this._id,
 
