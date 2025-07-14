@@ -16,5 +16,7 @@ router.route("/register").post(
     ]),
     userRegister
 ); 
-
-export default Router;
+router.get('/test', (req, res) => {
+  res.send('User route is working!');
+});
+export default router;

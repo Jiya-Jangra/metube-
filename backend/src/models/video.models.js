@@ -36,7 +36,7 @@ const videoSchema=new Schema(
             default:0, 
         },
         isPublished:{
-            type:boolean , 
+            type:Boolean , 
 
         },
 
@@ -50,7 +50,7 @@ const videoSchema=new Schema(
 });
 
 
-vedioSchema.plugin(mongooseAggregatePaginate);
+videoSchema.plugin(mongooseAggregatePaginate);
 
 
-export const video = mongoose.model("Video", videoSchema);
+export  const Video = mongoose.model("Video", videoSchema);

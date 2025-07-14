@@ -1,6 +1,8 @@
 import mongoose , {Schema} from "mongoose";
 import bcrypt from "bcrypt";
 import jsonwebtoken from "jsonwebtoken";
+import {Video}from './video.models.js'; // adjust the path based on your folder structure
+
 
 
 
@@ -72,7 +74,7 @@ userSchema.methods.isPasswordCorrect = async function (password){
     return await bcrypt.compare(password,this.password); //returns the boolean value 
 }
 
-userSchema.methids.generateAccessToken= function(){
+userSchema.methods.generateAccessToken= function(){
     jsonwebtoken.sign(
         {
             _Id :  this._id,
@@ -86,7 +88,7 @@ userSchema.methids.generateAccessToken= function(){
     )
 }
 
-userSchema.methids.generaterefreshToken= function(){
+userSchema.methods.generaterefreshToken= function(){
     jsonwebtoken.sign(
         {
             _Id :  this._id,

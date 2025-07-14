@@ -1,22 +1,22 @@
 import asyncHandler from "../utils/asynchandler.js";
 import {APIError} from "../utils/apiError.js"; 
 //user import krte h or ye user direct contact kr skta h database se kyuki ye mongoose se bna h 
-import {User} from "../models/users.models.js"; 
-import {uploadOnCloudinary} from "../utils/cloudnary.js" ;
+import User from "../models/users.models.js"; 
+import {uploadonCloudinary} from "../utils/cloudnary.js" ;
 import { ApiResponse } from "../utils/apiResponse.js"; 
 const userRegister = asyncHandler( 
     async(req,res)=>{
 
     // sari details req m milegi body req.body 
-    const {fullname , email, username , password } = req.body ; 
-    console.log(email); 
+    const {fullName , email, userName , password } = req.body ; 
+    console.log(userName); 
     //validaion
-    if([fullname,email,username,password].some((field)=>field?.trim()==="")){
+    if([fullName,email,userName,password].some((field)=>field?.trim()==="")){
         throw new APIError(400,"all field required")
     }
     //user exist krta h ke nhi krta 
-    const existedUser = User.findOne({
-        $or: [{username},{email}]
+    const existedUser = await User.findOne({
+        $or: [{userName},{email}]
     }); 
 
     if(existedUser) {
@@ -26,7 +26,11 @@ const userRegister = asyncHandler(
     
 
     const avatarLocalPath =  req.files?.avatar[0]?.path
-    const coverImageLocalPath = req.files?.coverImage[0]?.path  
+    console.log(avatarLocalPath); 
+    let coverImageLocalPath; 
+    if(req.files &&  Array.isArray(req.files.coverImage) && req.files.coverImage.length>0){
+        coverImageLocalPath = req.files.coverImage[0].path ; 
+    }
     console.log(req.files);  
 
     if(!avatarLocalPath){
@@ -34,20 +38,21 @@ const userRegister = asyncHandler(
 
     }
 
-   const avatar =  await uploadOnCloudinary(avatarLocalPath); 
-   const coverImage =  await uploadOnCloudinary(coverImageLocalPath);
+   const avatar =  await uploadonCloudinary(avatarLocalPath); 
+   console.log(avatar);
+   const coverImage =  await uploadonCloudinary(coverImageLocalPath);
     if(!avatar){
-        throw new APIError(400,"Avatar is required"); 
+        throw new APIError(400,"Avatar is required here"); 
 
     }
-
+    console.log(userName); 
     const user = await User.create(
-        {fullname,
+        {fullName,
         avatar : avatar.url, 
         coverImage : coverImage?.url || "",
          email,
          password,
-         username: username.toLoweCase()})
+         userName: userName.toLowerCase()})
 
     const createdUser = await User.findById(user._id).select(
         "-password -refreshToken"
