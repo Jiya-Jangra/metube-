@@ -68,14 +68,16 @@ const userRegister = asyncHandler(
 const generateAccessTokenAndRefreshToken = async(userID)=>{ 
     try {
         const user = await User.findById(userID); 
+        
         const accessToken = user.generateAccessToken(); 
         const refreshToken = user.generaterefreshToken();
-
-        User.refreshToken = refreshToken ; 
+        user.accessToken = accessToken ; 
+        user.refreshToken = refreshToken ; 
         await user.save({validateBeforeSave:false}) ; 
-
+        console.log("access token",accessToken,"refresh token",refreshToken); 
         return {accessToken,refreshToken}
     } catch (err) {
+        console.log("generated error",err); 
         throw new APIError(500,"something went wrong while generating the tokens"); 
     }
 }
@@ -83,25 +85,25 @@ const loginUser = asyncHandler(
     async (req,res)=>{
 
        const {email,password,userName} =  req.body ; 
-       if(!userName || !email){
+       if(!(userName || email)){
         throw new APIError(404,"username or email is required")
        }
 
        const user = await User.findOne({
         $or : [{userName},{email}]
-       }) //ya toh email ya toh userName 
+       }).select("+password") //ya toh email ya toh userName 
 
        if(!user){
         throw new APIError(404,'user doesnot exist'); 
        }
-
+       console.log(password)
        const isPasswordValid = await user.isPasswordCorrect(password); 
 
         if(!isPasswordValid){
         throw new APIError(404,'password not valid'); 
        }
-
-       const {refreshToken,accessToken}= await generateAccessTokenAndRefreshToken(user._id)
+       console.log(user); 
+       const {accessToken,refreshToken}= await generateAccessTokenAndRefreshToken(user._id)
 
        const loggedInUser = await User.findById(user._id).select("-password -refreshToken"); 
        
@@ -129,6 +131,7 @@ const logOutUser = asyncHandler(async()=>{
     //todos
     //remove copkies
     //remove access and refresh tokens 
+    console.log(req.cookies); 
     await User.findByIdAndUpdate(
         req.user._id,
         {
@@ -138,6 +141,11 @@ const logOutUser = asyncHandler(async()=>{
             new:true 
         }
     )
+    const options = {
+        httpOnly:true,
+        secure:true 
+       }
+
 
     res.status(200)
     .clearCookie("accessToken",options)

@@ -46,7 +46,7 @@ const userSchema = new Schema({
 
     password:{
         type:String,
-        required:[true,"PAssword is required"] ,
+        required:[true,"Password is required"] ,
         select: false, //do not return password in queries
 
     },
@@ -75,9 +75,9 @@ userSchema.methods.isPasswordCorrect = async function (password){
 }
 
 userSchema.methods.generateAccessToken= function(){
-    jsonwebtoken.sign(
+    return jsonwebtoken.sign(
         {
-            _Id :  this._id,
+            _id :  this._id,
             userName: this.userName,
             fullName: this.fullName,
         },
@@ -89,12 +89,12 @@ userSchema.methods.generateAccessToken= function(){
 }
 
 userSchema.methods.generaterefreshToken= function(){
-    jsonwebtoken.sign(
+    return jsonwebtoken.sign(
         {
-            _Id :  this._id,
+            _id :  this._id,
 
         },
-        process.env.REFRESH_TOKEN_SECRE,
+        process.env.REFRESH_TOKEN_SECRET,
         {
             expiresIn: process.env.REFRESH_TOKEN_EXPIRE , //expires in 1 day
         }
