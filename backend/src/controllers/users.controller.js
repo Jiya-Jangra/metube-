@@ -65,5 +65,91 @@ const userRegister = asyncHandler(
         new ApiResponse(200,createdUser,"user created successfully")
     )
 })
+const generateAccessTokenAndRefreshToken = async(userID)=>{ 
+    try {
+        const user = await User.findById(userID); 
+        const accessToken = user.generateAccessToken(); 
+        const refreshToken = user.generaterefreshToken();
 
-export { userRegister };
+        User.refreshToken = refreshToken ; 
+        await user.save({validateBeforeSave:false}) ; 
+
+        return {accessToken,refreshToken}
+    } catch (err) {
+        throw new APIError(500,"something went wrong while generating the tokens"); 
+    }
+}
+const loginUser = asyncHandler(
+    async (req,res)=>{
+
+       const {email,password,userName} =  req.body ; 
+       if(!userName || !email){
+        throw new APIError(404,"username or email is required")
+       }
+
+       const user = await User.findOne({
+        $or : [{userName},{email}]
+       }) //ya toh email ya toh userName 
+
+       if(!user){
+        throw new APIError(404,'user doesnot exist'); 
+       }
+
+       const isPasswordValid = await user.isPasswordCorrect(password); 
+
+        if(!isPasswordValid){
+        throw new APIError(404,'password not valid'); 
+       }
+
+       const {refreshToken,accessToken}= await generateAccessTokenAndRefreshToken(user._id)
+
+       const loggedInUser = await User.findById(user._id).select("-password -refreshToken"); 
+       
+       const options = {
+        httpOnly:true,
+        secure:true 
+       }
+
+       return res.status(200).cookie("accessToken",accessToken,options) //app.use(cookieParser()) ki wajh se hum ye use kr skte h app.js m h 
+       .cookie("refreshToken",refreshToken,options)
+       .json(
+        new ApiResponse(200,{
+            user:loggedInUser,accessToken,refreshToken
+        },
+        "user loggedIn successfully"
+    )
+    )
+
+
+
+
+    }
+)
+const logOutUser = asyncHandler(async()=>{
+    //todos
+    //remove copkies
+    //remove access and refresh tokens 
+    await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {refreshToken:undefined}
+        },
+        {
+            new:true 
+        }
+    )
+
+    res.status(200)
+    .clearCookie("accessToken",options)
+    .clearCookie("refreshToken",options)
+    .json(new ApiResponse(
+        201,
+        {},
+        "User logged out"
+    ))
+
+
+}
+)
+
+export { userRegister,loginUser,logOutUser };
