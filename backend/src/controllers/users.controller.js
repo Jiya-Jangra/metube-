@@ -163,7 +163,7 @@ const logOutUser = asyncHandler(async()=>{
 
 const refreshAccessToken = asyncHandler(async(req,res)=>{
     //cookies se refresh token req.body.refreshtoken
-    const rtoken = req.cookies.refreshToken || req.body.refreshToken ;
+    const rtoken = req.cookies.refreshToken || req.body.refreshToken ; //idr req.user isliye nhi kia kyuki vo tbhi ata h jb user login ho idr vo logout hogya h verifyJWt humne logout pr lgaya tha 
     if(!rtoken){
         throw new APIError(401,"Invalid refresh token at access refresh  token ")
     } 
