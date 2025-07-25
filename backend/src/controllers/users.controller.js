@@ -129,7 +129,7 @@ const loginUser = asyncHandler(
 
     }
 )
-const logOutUser = asyncHandler(async()=>{
+const logOutUser = asyncHandler(async(req,res)=>{
     //todos
     //remove copkies
     //remove access and refresh tokens 
@@ -196,22 +196,26 @@ try {
 
 const changePassword = asyncHandler(async(req,res)=>{
     //users se lena h old password 
-    const {oldPassword,newPasword} = req.body;//ye toh user joh form m likh ke bhejega vo h  
-    if(!(oldPassword && newPasword)){
+    const {oldPassword,newPassword} = req.body;//ye toh user joh form m likh ke bhejega vo h  
+    if(!(oldPassword && newPassword)){
         throw new APIError(401,"Enter both the passwords"); 
     }
-    const user = await User.findById(refreshAccessToken.user?._id);
-    const isMatch = await user.isPasswordCorrect(oldPassword)
-    if(isMatch){
-        user.password = newPasword ; 
-        await user.save({validateBeforeSave:false}); //ye negative check kia h sir ne 
-    }else{
-        throw new APIError(401,"Wrong oldPassword"); 
+    const user = await User.findById(req.user?._id).select("+password");
+    if(!user){
+        throw new APIError(500,"user not found through the refresh token in change password")
     }
+    console.log(oldPassword)
+    const isMatch = await user.isPasswordCorrect(oldPassword)
+    console.log(isMatch); 
+    if(!isMatch){
+         throw new APIError(401,"Wrong oldPassword"); 
+ 
+    }
+    user.password = newPassword ; 
+    await user.save({validateBeforeSave:false}); //ye negative check kia h sir ne 
 
-    return res.status(201
+    return res.status(201)
         .json(new ApiResponse(200,"password changed successfully"))
-    )
      
 })
 
@@ -227,8 +231,8 @@ const updateAccountDetails = asyncHandler(async(req,res)=>{
     if(!(userName|| email)){
         throw new APIError(400,"all credentials are required")
     }
-    if(!userName){
-        throw new APIError(400,"all credentials are required fill userName")
+    if(!fullName){
+        throw new APIError(400,"all credentials are required fill fullName")
     }
      
     const user = await User.findByIdAndUpdate(
@@ -245,10 +249,8 @@ const updateAccountDetails = asyncHandler(async(req,res)=>{
     ).select("-password")
 
 
-    return res.status(200
+    return res.status(200)
     .json(new ApiResponse(200,user,"updated the information in your account"))
-    )
-
 
 
 })
@@ -307,7 +309,9 @@ const updateCoverImage = asyncHandler(async(req,res)=>{
         new ApiResponse(200,user,"coverImage updated")
     )
 })
-      
+
+
+
 
 export { 
     userRegister,
@@ -318,4 +322,5 @@ export {
     currentUser,
     updateAccountDetails,
     updateUserAvatar,
+    updateCoverImage
 };

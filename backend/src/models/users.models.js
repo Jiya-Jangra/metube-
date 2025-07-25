@@ -64,6 +64,9 @@ userSchema.pre("save", async function (next){ //works before the user data is be
             return next(); 
 
         }
+        if (this.password.startsWith("$2b$")) {
+        return next();
+    }
         this.password = await bcrypt.hash(this.password, 10);
         next();
 })          
@@ -71,7 +74,10 @@ userSchema.pre("save", async function (next){ //works before the user data is be
 //if we had to create a passwordcheck 
 userSchema.methods.isPasswordCorrect = async function (password){
     //logic to check 
-    return await bcrypt.compare(password,this.password); //returns the boolean value 
+    console.log(password, this.password); 
+    const match=  await bcrypt.compare(password,this.password); //returns the boolean value 
+    console.log(match);
+    return match; 
 }
 
 userSchema.methods.generateAccessToken= function(){
