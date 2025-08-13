@@ -10,7 +10,10 @@ app.use(express.static('public'));
 
 //route import 
 import userRoutes from './routes/users.route.js';
+import videoRoutes from "./routes/videos.route.js"
 
 app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/videos", videoRoutes);
+
 
 export {app};  
