@@ -129,9 +129,54 @@ const getVideoById = asyncHandler(async (req, res) => {
 
 const updateVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
+    const user = req.user 
+    const {title,description } = req.body
     //TODO: update video details like title, description, thumbnail
+    const validUser = await Video.findById(videoId); 
+    if(!validUser){
+        throw new APIError(404,"invalid video id")
+    }
+    console.log(validUser);
 
+    if(!user == validUser.owner){
+        throw new APIError(404,"you are not the onwner of the video")
+    }
+    const updatedVideo = await Video.findByIdAndUpdate(videoId,
+        {
+            $set:{
+                title,
+                description
+            }
+        },{new:true}
+    )
+    if(!updatedVideo){
+        throw new APIError(500,"updation failed")
+    }
 
+    return res.status(200)
+    .json(new ApiResponse(200,"video is updated",updatedVideo))
+})
+
+const updateThumbnail = asyncHandler(async(req,res)=>{
+    const {videoId} = req.params
+    const thumnail = req.file?.thumbnail.path 
+    if(!thumnail){
+        throw new APIError(404,"upload the thumbnail")
+    }
+    const uploadThumnail = await uploadonCloudinary(thumnail); 
+    if(!uploadThumnail.url){
+        throw new APIError(500,"upload on cloudinary failed")
+    }
+
+    const newThumnail = await Video.findByIdAndUpdate(videoId,{
+        $set:{
+            thumnail:uploadThumnail.url
+        }
+    },{
+        new:true
+    })
+
+    return res.status(200).json(new ApiResponse(200,"thumbnail updated"))
 })
 
 const deleteVideo = asyncHandler(async (req, res) => {
@@ -148,6 +193,7 @@ export {
     publishAVideo,
     getVideoById,
     updateVideo,
+    updateThumbnail,
     deleteVideo,
     togglePublishStatus
 }
